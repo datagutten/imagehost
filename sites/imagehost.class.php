@@ -37,7 +37,21 @@ class imagehost
 	{
 		$md5_file=$this->md5_folder.'/'.$md5;
 		if(file_exists($md5_file)) //Sjekk om filen allerede er lastet opp
-			return json_decode(file_get_contents($md5_file),true); //Returner lagrede opplysninger
+		{
+			$data=file_get_contents($md5_file);
+			if(empty($data)) //Empty file
+			{
+				unlink($md5_file);
+				return false;
+			}
+			$info=json_decode($data,true);
+			if(!is_array($info))
+			{
+				rename($md5_file,$md5_file.'_bad');
+				return false;
+			}
+			return $info;
+		}
 		else
 			return false;
 	}
