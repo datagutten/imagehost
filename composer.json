@@ -1,0 +1,21 @@
+{
+    "name": "datagutten/imagehost",
+    "description": "A PHP class structure to upload images to different hosts",
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "^8"
+    },
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "datagutten",
+            "email": "datagutten@datagutten.net"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "datagutten\\image_host\\": "sites"
+        }
+    }
+}
