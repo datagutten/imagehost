@@ -4,6 +4,10 @@ class imagehost
 	protected $ch;
 	public $md5_folder;
 	public $error;
+    /**
+     * @var string Site name
+     */
+	public $site;
     function __construct()
     {
 		$this->site=static::class;
