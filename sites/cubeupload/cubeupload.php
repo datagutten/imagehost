@@ -6,8 +6,13 @@ class cubeupload extends imagehost
 	public $ch;
 	public function __construct()
 	{
-		parent::__construct('cubeupload');
+		parent::__construct();
+		curl_setopt($this->ch,CURLOPT_COOKIEFILE,'');
 	}
+	function login($username, $password)
+    {
+        $this->request('https://cubeupload.com/login','POST',sprintf('cube_username=%s&cube_password=%s&login=Login',$username, $password));
+    }
 	private function send_upload($file)
 	{
 		echo "Sending upload\n";
@@ -21,34 +26,43 @@ class cubeupload extends imagehost
 		$md5=md5_file($file);
 		$dupecheck_result=$this->dupecheck($md5);
 		if($dupecheck_result!==false)
-			$data=$dupecheck_result;
+			$info=$dupecheck_result;
 		else
 		{
 			$data=$this->send_upload($file);
 			if($data!==false)
 			{
-				$data=json_decode($data,true);
-				if($data['status']!=='success')
+				$info=json_decode($data,true);
+				if(!is_array($info))
 				{
-					$this->error=$data['error'];
+					$this->error='cubeupload returned string: '.$data;
 					return false;
 				}
-				$this->dupecheck_write($data,$md5);		
+				elseif($info['status']!=='success')
+				{
+					$this->error='cubeupload returned error: '.$info['error'];
+					return false;
+				}
+				$this->dupecheck_write($info,$md5);		
 			}
 		}
 
-		if($data!==false)
-			return sprintf('https://i.cubeupload.com/%s',$data['file_name']);
+		if($info!==false && is_array($info))
+			return sprintf('https://u.cubeupload.com/%s/%s',$info['user_name'],$info['file_name']);
 		else
+		{
+			$this->error='Unknown error, check cache file '.$md5;
 			return false;
+		}
+			
 	}
 	function thumbnail($link)
 	{
-		return str_replace('https://i.cubeupload.com','https://i.cubeupload.com/t',$link);
+		return preg_replace('#(http.+cubeupload.com/)(.+)/(.+)$#U','$1$2/t/$3',$link);
 	}
 	function page_link($link)
 	{
-		return str_replace('https://i.cubeupload.com','https://cubeupload.com/im',$link);
+		return str_replace('https://u.cubeupload.com','https://cubeupload.com/im',$link);
 	}
 	function bbcode($link)
 	{
