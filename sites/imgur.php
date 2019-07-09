@@ -27,9 +27,16 @@ class imgur extends image_host
 		}
 		return $data['link'];
 	}
+
+    /**
+     * Send upload to imgur
+     * @param $file
+     * @return bool
+     * @throws \Exception
+     */
     private function send_upload($file)
     {
-		$json=$this->request("https://api.imgur.com/3/upload","POST",array('image'=>new curlfile($file)));
+		$json=$this->request("https://api.imgur.com/3/upload","POST",array('image'=>new \curlfile($file)));
 		$data=json_decode($json,true);
 
 		if($data['status']!=200)
