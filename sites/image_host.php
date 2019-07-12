@@ -21,7 +21,7 @@ abstract class image_host
         curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 1);
 		$this->md5_folder=sprintf('%s/%s/uploads_md5',__DIR__,$this->site);
 		if(!file_exists($this->md5_folder))
-			mkdir($this->md5_folder);
+			mkdir($this->md5_folder, 0777, true);
     }
 
 	public function request($url,$type="GET",$postfields=false)
