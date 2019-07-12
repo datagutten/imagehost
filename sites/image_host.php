@@ -2,7 +2,7 @@
 
 namespace datagutten\image_host;
 
-class image_host
+abstract class image_host
 {
 	protected $ch;
 	public $md5_folder;
@@ -37,7 +37,7 @@ class image_host
 		curl_setopt($this->ch, CURLOPT_URL, $url);
         
 		if (($data = curl_exec($this->ch))===false)
-            throw new Exception(curl_error($this->ch));
+            throw new \Exception(curl_error($this->ch));
 		return $data;
     }
 	public function dupecheck($md5)
@@ -67,4 +67,12 @@ class image_host
 		$md5_file=$this->md5_folder.'/'.$md5;
 		file_put_contents($md5_file,json_encode($data));
 	}
+
+    /**
+     * Upload image
+     * @param string $file
+     * @return string Link to uploaded file
+     */
+	abstract function upload($file);
+
 }
