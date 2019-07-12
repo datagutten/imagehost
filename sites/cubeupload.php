@@ -2,6 +2,8 @@
 
 namespace datagutten\image_host;
 
+use curlfile;
+
 class cubeupload extends image_host
 {
 	public $ch;
