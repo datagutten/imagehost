@@ -12,7 +12,18 @@
             "email": "datagutten@datagutten.net"
         }
     ],
-    "require": {},
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/datagutten/Requests.git"
+    }
+  ],
+    "require": {
+      "ext-json": "*",
+      "ext-curl": "*",
+      "symfony/filesystem": "^4.3",
+      "rmccue/requests": "dev-multipart-form-data"
+    },
     "autoload": {
         "psr-4": {
             "datagutten\\image_host\\": "sites"
