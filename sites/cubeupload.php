@@ -3,6 +3,8 @@
 namespace datagutten\image_host;
 
 use curlfile;
+use datagutten\image_host\exceptions\UploadFailed;
+use Requests_Exception;
 
 class cubeupload extends image_host
 {
@@ -13,14 +15,27 @@ class cubeupload extends image_host
 	{
 		parent::__construct();
 		curl_setopt($this->ch,CURLOPT_COOKIEFILE,'');
+		$this->config = require 'config.php';
 	}
-	function login($username, $password)
+
+    /**
+     * Log in to the site
+     * @throws Requests_Exception
+     * @return string
+     */
+	function login()
     {
         list($username, $password) = $this->config['imagehost_cubeload_login'];
         $this->is_logged_in = true;
         //TODO: Verify login with 302
         return $this->request('https://cubeupload.com/login','POST',sprintf('cube_username=%s&cube_password=%s&login=Login',$username, $password));
     }
+
+    /**
+     * @param $file
+     * @throws Requests_Exception
+     * @return string
+     */
 	private function send_upload($file)
 	{
 	    if(!$this->is_logged_in)
@@ -31,6 +46,12 @@ class cubeupload extends image_host
 		return $this->request('https://cubeupload.com/upload_json.php','POST',$postdata);
 		//print_r($postdata);
 	}
+
+    /**
+     * @param string $file
+     * @return string Uploaded file
+     * @throws UploadFailed
+     */
 	public function upload($file)
 	{
 		$md5=md5_file($file);
@@ -39,25 +60,29 @@ class cubeupload extends image_host
 			$info=$dupecheck_result;
 		else
 		{
-			$data=$this->send_upload($file);
+		    try {
+                $data = $this->send_upload($file);
+            }
+            catch (Requests_Exception $e)
+            {
+                throw new UploadFailed($e->getMessage(), 0, $e);
+            }
 			if($data!==false)
 			{
 				$info=json_decode($data,true);
 				if(!is_array($info))
 				{
-					$this->error='cubeupload returned string: '.$data;
-					return false;
+                    throw new UploadFailed('cubeupload returned string: '.$data);
 				}
 				elseif($info['status']!=='success')
 				{
-					$this->error='cubeupload returned error: '.$info['error'];
-					return false;
+					throw new UploadFailed($info['error_text']);
 				}
 				$this->dupecheck_write($info,$md5);		
 			}
 		}
 
-		if($info!==false && is_array($info))
+		if(!empty($info) && $info!==false && is_array($info))
 			return sprintf('https://u.cubeupload.com/%s/%s',$info['user_name'],$info['file_name']);
 		else
 		{
