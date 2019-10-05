@@ -7,6 +7,8 @@ use curlfile;
 class cubeupload extends image_host
 {
 	public $ch;
+	public $is_logged_in = false;
+	public $config;
 	public function __construct()
 	{
 		parent::__construct();
@@ -14,10 +16,15 @@ class cubeupload extends image_host
 	}
 	function login($username, $password)
     {
-        $this->request('https://cubeupload.com/login','POST',sprintf('cube_username=%s&cube_password=%s&login=Login',$username, $password));
+        list($username, $password) = $this->config['imagehost_cubeload_login'];
+        $this->is_logged_in = true;
+        //TODO: Verify login with 302
+        return $this->request('https://cubeupload.com/login','POST',sprintf('cube_username=%s&cube_password=%s&login=Login',$username, $password));
     }
 	private function send_upload($file)
 	{
+	    if(!$this->is_logged_in)
+	        $this->login();
 		echo "Sending upload\n";
 		$pathinfo=pathinfo($file);
 		$postdata=array('name'=>$pathinfo['basename'],'userHash'=>'false','userID'=>'false','fileinput[0]'=>new curlfile($file));
