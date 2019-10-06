@@ -12,6 +12,7 @@
             "email": "datagutten@datagutten.net"
         }
     ],
+  "minimum-stability": "dev",
   "repositories": [
     {
       "type": "vcs",
