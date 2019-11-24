@@ -23,11 +23,19 @@
       "ext-json": "*",
       "ext-curl": "*",
       "symfony/filesystem": "^4.3",
-      "rmccue/requests": "dev-multipart-form-data"
+      "rmccue/requests": "^1.7",
+      "cweagans/composer-patches": "~1.0"
     },
     "autoload": {
         "psr-4": {
             "datagutten\\image_host\\": "sites"
         }
+    },
+  "extra": {
+    "patches": {
+      "rmccue/requests": {
+        "Support multipart/form-data": "https://github.com/datagutten/Requests/commit/97cd8b6422cbf2f5bd3040b4d70f1629437b521c.patch"
+      }
     }
+  }
 }
