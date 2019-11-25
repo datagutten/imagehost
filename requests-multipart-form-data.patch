@@ -1,0 +1,84 @@
+From 97cd8b6422cbf2f5bd3040b4d70f1629437b521c Mon Sep 17 00:00:00 2001
+From: datagutten <datagutten@datagutten.net>
+Date: Sat, 5 Oct 2019 19:11:53 +0200
+Subject: [PATCH] Add support for sending POST with multipart/form-data
+
+---
+ library/Requests/Transport/cURL.php      |  7 ++++++-
+ library/Requests/Transport/fsockopen.php | 15 ++++++++++++++-
+ tests/Transport/Base.php                 | 11 +++++++++++
+ 3 files changed, 31 insertions(+), 2 deletions(-)
+
+diff --git a/library/Requests/Transport/cURL.php b/library/Requests/Transport/cURL.php
+index 4429edb..0e17940 100644
+--- a/library/Requests/Transport/cURL.php
++++ b/library/Requests/Transport/cURL.php
+@@ -313,6 +313,11 @@ protected function setup_handle($url, $headers, $data, $options) {
+ 		if ( ! isset( $headers['Connection'] ) ) {
+ 			$headers['Connection'] = 'close';
+ 		}
++        if(isset($headers['Content-Type']) && $headers['Content-Type']==='multipart/form-data') {
++            $is_multipart_form = true;
++        }
++        else
++            $is_multipart_form = false;
+ 
+ 		$headers = Requests::flatten($headers);
+ 
+@@ -323,7 +328,7 @@ protected function setup_handle($url, $headers, $data, $options) {
+ 				$url = self::format_get($url, $data);
+ 				$data = '';
+ 			}
+-			elseif (!is_string($data)) {
++            elseif (!is_string($data) && !$is_multipart_form) {
+ 				$data = http_build_query($data, null, '&');
+ 			}
+ 		}
+diff --git a/library/Requests/Transport/fsockopen.php b/library/Requests/Transport/fsockopen.php
+index c7c61d3..876e858 100644
+--- a/library/Requests/Transport/fsockopen.php
++++ b/library/Requests/Transport/fsockopen.php
+@@ -154,7 +154,20 @@ public function request($url, $headers = array(), $data = array(), $options = ar
+ 
+ 		if ($options['type'] !== Requests::TRACE) {
+ 			if (is_array($data)) {
+-				$request_body = http_build_query($data, null, '&');
++			    if (isset($case_insensitive_headers['Content-Type']) && $case_insensitive_headers['Content-Type']==='multipart/form-data')
++                {
++                    $boundary = '------------------------'.substr(md5(rand()), 0, 16);
++                    $headers['Content-Type'] = sprintf('multipart/form-data; boundary=%s', $boundary);
++
++                    foreach ($data as $key=>$value)
++                    {
++                        $request_body .= '--'.$boundary."\r\n";
++                        $request_body .= sprintf("Content-Disposition: form-data; name=\"%s\"\r\n\r\n%s\r\n", $key, $value);
++                    }
++                    $request_body .= '--'.$boundary."--\r\n";
++                }
++			    else
++				    $request_body = http_build_query($data, null, '&');
+ 			}
+ 			else {
+ 				$request_body = $data;
+diff --git a/tests/Transport/Base.php b/tests/Transport/Base.php
+index ebd6ca9..6c5c142 100644
+--- a/tests/Transport/Base.php
++++ b/tests/Transport/Base.php
+@@ -203,6 +203,17 @@ public function testPOSTWithNestedData() {
+ 		$this->assertEquals(array('test' => 'true', 'test2[test3]' => 'test', 'test2[test4]' => 'test-too'), $result['form']);
+ 	}
+ 
++	public function testPOSTWithMultipartData() {
++        $data = array(
++            'test' => 'true',
++            'test2' => 'test',
++        );
++        $request = Requests::post('http://httpbin.org/post', array('Content-Type'=>'multipart/form-data'), $data, $this->getOptions());
++        $this->assertEquals(200, $request->status_code);
++        $result = json_decode($request->body, true);
++        $this->assertEquals(array('test' => 'true', 'test2' => 'test'), $result['form']);
++    }
++
+ 	public function testRawPUT() {
+ 		$data = 'test';
+ 		$request = Requests::put(httpbin('/put'), array(), $data, $this->getOptions());
