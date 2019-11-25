@@ -12,13 +12,6 @@
             "email": "datagutten@datagutten.net"
         }
     ],
-  "minimum-stability": "dev",
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/datagutten/Requests.git"
-    }
-  ],
     "require": {
       "ext-json": "*",
       "ext-curl": "*",
