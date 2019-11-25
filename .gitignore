@@ -2,3 +2,8 @@ uploads_md5
 config.php
 
 /vendor/
+.idea
+composer.lock
+coverage_html
+clover.xml
+.phpunit.result.cache
