@@ -2,6 +2,7 @@
 
 namespace datagutten\image_host;
 
+use datagutten\image_host\exceptions\UploadFailed;
 use Requests;
 use Requests_Session;
 
@@ -90,6 +91,7 @@ abstract class image_host
      * Upload image
      * @param string $file
      * @return string Link to uploaded file
+     * @throws UploadFailed
      */
 	abstract function upload($file);
 
