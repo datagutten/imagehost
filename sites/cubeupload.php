@@ -4,6 +4,7 @@ namespace datagutten\image_host;
 
 use curlfile;
 use datagutten\image_host\exceptions\UploadFailed;
+use InvalidArgumentException;
 use Requests_Exception;
 
 class cubeupload extends image_host
@@ -54,8 +55,8 @@ class cubeupload extends image_host
      */
 	public function upload($file)
 	{
-	    if(!file_exists($file))
-	        throw new UploadFailed(sprintf('File not found: "%s"', $file));
+        if(empty($file) || !file_exists($file))
+            throw new InvalidArgumentException(sprintf('File not found: "%s"', $file));
 		$md5=md5_file($file);
 		$dupecheck_result=$this->dupecheck($md5);
 		if($dupecheck_result!==false)
