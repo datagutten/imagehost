@@ -2,6 +2,9 @@
 
 namespace datagutten\image_host;
 
+use Requests;
+use Requests_Session;
+
 abstract class image_host
 {
 	protected $ch;
@@ -11,6 +14,11 @@ abstract class image_host
      * @var string Site name
      */
 	public $site;
+
+    /**
+     * @var Requests_Session
+     */
+	public $session;
     function __construct()
     {
 		$this->site= substr(strrchr(static::class, "\\"), 1);
@@ -22,23 +30,33 @@ abstract class image_host
 		$this->md5_folder=sprintf('%s/%s/uploads_md5',__DIR__,$this->site);
 		if(!file_exists($this->md5_folder))
 			mkdir($this->md5_folder, 0777, true);
+        $options = [];
+		$this->session = new Requests_Session(null, [], [], $options);
     }
 
-	public function request($url,$type="GET",$postfields=false)
+    /**
+     * @param $url
+     * @param string $type
+     * @param array $post_fields
+     * @return string
+     * @throws \Requests_Exception
+     * @throws \Requests_Exception_HTTP
+     */
+	public function request($url, $type="GET", $post_fields=null)
     {
-        if ($postfields!==false)
+        if(!empty($post_fields))
 		{
-            curl_setopt($this->ch,CURLOPT_POST,true);
-			curl_setopt($this->ch,CURLOPT_POSTFIELDS, $postfields);
+		    if(is_array($post_fields))
+		        $response = $this->session->post($url, array('Content-Type'=>'multipart/form-data'), $post_fields, ['transport'=>'Requests_Transport_cURL']);
+            else
+                $response = $this->session->post($url, [], $post_fields);
 		}
 		else
-			curl_setopt($this->ch,CURLOPT_HTTPGET,true);
-		
-		curl_setopt($this->ch, CURLOPT_URL, $url);
-        
-		if (($data = curl_exec($this->ch))===false)
-            throw new \Exception(curl_error($this->ch));
-		return $data;
+            $response = Requests::get($url);
+
+		$response->throw_for_status();
+
+		return $response->body;
     }
 	public function dupecheck($md5)
 	{
