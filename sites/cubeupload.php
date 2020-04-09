@@ -74,7 +74,7 @@ class cubeupload extends image_host
 				{
                     throw new UploadFailed('cubeupload returned string: '.$data);
 				}
-				elseif($info['status']!=='success')
+				elseif(!isset($info['status']) || $info['status']!=='success')
 				{
 					throw new UploadFailed($info['error_text']);
 				}
