@@ -59,6 +59,12 @@ abstract class image_host
 
 		return $response->body;
     }
+
+    /**
+     * Check if the file already is uploaded
+     * @param $md5
+     * @return bool|array Return false if not found or array with saved information
+     */
 	public function dupecheck($md5)
 	{
 		$md5_file=$this->md5_folder.'/'.$md5;
@@ -81,6 +87,12 @@ abstract class image_host
 		else
 			return false;
 	}
+
+    /**
+     * Write duplicate check file with information about the uploaded image
+     * @param array $data Array with data to be saved
+     * @param string $md5 MD5 hash of the image
+     */
 	public function dupecheck_write($data,$md5)
 	{	
 		$md5_file=$this->md5_folder.'/'.$md5;
