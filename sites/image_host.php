@@ -31,15 +31,15 @@ abstract class image_host
 
     /**
      * @param $url
-     * @param string $type
+     * @param string $method Request HTTP method
      * @param array $post_fields
      * @return string
      * @throws \Requests_Exception
      * @throws \Requests_Exception_HTTP
      */
-	public function request($url, $type="GET", $post_fields=null)
+	public function request($url, $method='GET', $post_fields=null)
     {
-        if(!empty($post_fields))
+        if(!empty($post_fields) || $method=='POST')
 		{
 		    if(is_array($post_fields))
 		        $response = $this->session->post($url, array('Content-Type'=>'multipart/form-data'), $post_fields, ['transport'=>'Requests_Transport_cURL']);
