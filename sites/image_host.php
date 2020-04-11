@@ -4,6 +4,8 @@ namespace datagutten\image_host;
 
 use datagutten\image_host\exceptions\UploadFailed;
 use Requests;
+use Requests_Exception;
+use Requests_Exception_HTTP;
 use Requests_Session;
 
 abstract class image_host
@@ -34,8 +36,8 @@ abstract class image_host
      * @param string $method Request HTTP method
      * @param array $post_fields
      * @return string
-     * @throws \Requests_Exception
-     * @throws \Requests_Exception_HTTP
+     * @throws Requests_Exception
+     * @throws Requests_Exception_HTTP
      */
 	public function request($url, $method='GET', $post_fields=null)
     {
