@@ -8,7 +8,6 @@ use Requests_Session;
 
 abstract class image_host
 {
-	protected $ch;
 	public $md5_folder;
 	public $error;
     /**
@@ -23,11 +22,6 @@ abstract class image_host
     function __construct()
     {
 		$this->site= substr(strrchr(static::class, "\\"), 1);
-        $this->ch = curl_init();
-        //curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($this->ch, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 1);
 		$this->md5_folder=sprintf('%s/%s/uploads_md5',__DIR__,$this->site);
 		if(!file_exists($this->md5_folder))
 			mkdir($this->md5_folder, 0777, true);

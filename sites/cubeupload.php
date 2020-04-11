@@ -9,13 +9,11 @@ use Requests_Exception;
 
 class cubeupload extends image_host
 {
-	public $ch;
 	public $is_logged_in = false;
 	public $config;
 	public function __construct()
 	{
 		parent::__construct();
-		curl_setopt($this->ch,CURLOPT_COOKIEFILE,'');
 		$this->config = require 'config.php';
 	}
 
