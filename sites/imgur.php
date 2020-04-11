@@ -51,4 +51,17 @@ class imgur extends image_host
 	{
 		return sprintf('[url=%s][img]%s[/img][/url]',$link,$this->thumbnail($link));
 	}
+
+    /**
+     * Delete an image
+     * @param $delete_hash
+     * @throws Requests_Exception
+     * @return Requests_Response
+    */
+	function delete($delete_hash)
+    {
+        $response = $this->session->delete('https://api.imgur.com/3/image/'.$delete_hash);
+        $response->throw_for_status();
+        return $response;
+    }
 }
