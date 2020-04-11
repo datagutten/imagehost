@@ -64,7 +64,7 @@ abstract class image_host
 	public function dupecheck($md5)
 	{
 		$md5_file=$this->md5_folder.'/'.$md5;
-		if(file_exists($md5_file)) //Sjekk om filen allerede er lastet opp
+		if(file_exists($md5_file) && is_file($md5_file)) //Sjekk om filen allerede er lastet opp
 		{
 			$data=file_get_contents($md5_file);
 			if(empty($data)) //Empty file
