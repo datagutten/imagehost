@@ -3,6 +3,14 @@ language: php
 matrix:
   fast_finish: true
   include:
+    - os: windows
+      language: sh
+      before_install:
+        - choco install php --version 7.4
+        - choco install composer
+        - export PATH="/c/tools/php74:/c/ProgramData/ComposerSetup/bin/:/c/ProgramData/chocolatey/lib/ffmpeg/tools:$PATH"
+      install:
+        - composer install --no-interaction --ignore-platform-reqs;
     - php: '7.1'
     - php: '7.2'
     - php: '7.3'
