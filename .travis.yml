@@ -10,24 +10,24 @@ matrix:
         - choco install composer
         - export PATH="/c/tools/php74:/c/ProgramData/ComposerSetup/bin/:/c/ProgramData/chocolatey/lib/ffmpeg/tools:$PATH"
       install:
-        - composer install --no-interaction --ignore-platform-reqs;
+        - composer install --no-interaction --no-cache
     - php: '7.1'
     - php: '7.2'
     - php: '7.3'
     - php: '7.4'
     - php: 'nightly'
       install:
-        - composer install --no-interaction --ignore-platform-reqs
+        - composer install --no-interaction --ignore-platform-reqs --no-cache
     - php: '7.4'
       name: 'Prefer lowest'
       install:
-        - composer install --no-interaction
-        - composer update --prefer-lowest
+        - composer install --no-interaction --no-cache
+        - composer update --prefer-lowest --no-cache
   allow_failures:
     - php: 'nightly'
 
 install:
-  composer install --no-interaction
+  composer install --no-interaction --no-cache
 
 before_script:
  - vendor/bin/phpunit --version
