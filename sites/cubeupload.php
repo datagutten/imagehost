@@ -10,12 +10,7 @@ use Requests_Exception;
 class cubeupload extends image_host
 {
 	public $is_logged_in = false;
-	public $config;
-	public function __construct()
-	{
-		parent::__construct();
-		$this->config = require 'config.php';
-	}
+	public static $config_required = true;
 
     /**
      * Log in to the site
@@ -24,10 +19,11 @@ class cubeupload extends image_host
      */
 	function login()
     {
-        list($username, $password) = $this->config['imagehost_cubeload_login'];
+        $data = sprintf('cube_username=%s&cube_password=%s&login=Login',
+            $this->config['username'], $this->config['password']);
         $this->is_logged_in = true;
         //TODO: Verify login with 302
-        return $this->request('https://cubeupload.com/login','POST',sprintf('cube_username=%s&cube_password=%s&login=Login',$username, $password));
+        return $this->request('https://cubeupload.com/login', 'POST', $data);
     }
 
     /**

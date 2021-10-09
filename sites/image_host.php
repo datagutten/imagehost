@@ -7,9 +7,11 @@ use Requests;
 use Requests_Exception;
 use Requests_Exception_HTTP;
 use Requests_Session;
+use RuntimeException;
 
 abstract class image_host
 {
+    public static $config_required = false;
 	public $md5_folder;
 	public $error;
     /**
@@ -21,9 +23,22 @@ abstract class image_host
      * @var Requests_Session
      */
 	public $session;
-    function __construct()
+
+    /**
+     * @var array Configuration parameters
+     */
+    protected $config = [];
+
+    function __construct(array $config = [])
     {
 		$this->site= substr(strrchr(static::class, "\\"), 1);
+        if (static::$config_required)
+        {
+            if (empty($config[$this->site]))
+                throw new RuntimeException(sprintf('Missing configuration for %s', $this->site));
+            $this->config = $config[$this->site];
+        }
+
 		$this->md5_folder=sprintf('%s/%s/uploads_md5',__DIR__,$this->site);
 		if(!file_exists($this->md5_folder))
 			mkdir($this->md5_folder, 0777, true);

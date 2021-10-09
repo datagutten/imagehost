@@ -10,11 +10,11 @@ use Requests_Response;
 
 class imgur extends image_host
 {
-    function __construct()
+    public static $config_required = true;
+    function __construct($config)
     {
-		parent::__construct();
-		require 'imgur/config.php';
-        $this->session->headers = ['Authorization'=>'Client-Id '.$api_key];
+        parent::__construct($config);
+        $this->session->headers = ['Authorization'=>'Client-Id '.$this->config['api_key']];
     }
 	
 	public function upload($file)
