@@ -2,6 +2,7 @@
 
 namespace datagutten\image_host;
 
+use curlfile;
 use InvalidArgumentException;
 
 class imma_gr extends image_host
@@ -13,11 +14,8 @@ class imma_gr extends image_host
 	}
 	private function send_upload($file)
 	{
-		echo "Sending upload\n";
-		$pathinfo=pathinfo($file);
-		$postdata=array('userfile'=>new \curlfile($file));
+		$postdata=array('userfile'=>new curlfile($file));
 		return $this->request('https://imma.gr/upload.php','POST',$postdata);
-		//print_r($postdata);
 	}
 
 	public function upload($file)
