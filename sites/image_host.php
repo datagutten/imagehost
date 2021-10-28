@@ -47,14 +47,15 @@ abstract class image_host
     }
 
     /**
-     * @param $url
+     * Send HTTP request
+     * @param string $url
      * @param string $method Request HTTP method
-     * @param array $post_fields
+     * @param array|string|null $post_fields
      * @return string
      * @throws Requests_Exception
      * @throws Requests_Exception_HTTP
      */
-	public function request($url, $method='GET', $post_fields=null)
+	public function request(string $url, string $method='GET', $post_fields=null): string
     {
         if(!empty($post_fields) || $method=='POST')
 		{
@@ -73,10 +74,10 @@ abstract class image_host
 
     /**
      * Check if the file already is uploaded
-     * @param $md5
+     * @param string $md5 MD5 hash
      * @return bool|array Return false if not found or array with saved information
      */
-	public function dupecheck($md5)
+	public function dupecheck(string $md5)
 	{
 		$md5_file=$this->md5_folder.'/'.$md5;
 		if(file_exists($md5_file) && is_file($md5_file)) //Sjekk om filen allerede er lastet opp
@@ -104,7 +105,7 @@ abstract class image_host
      * @param array $data Array with data to be saved
      * @param string $md5 MD5 hash of the image
      */
-	public function dupecheck_write($data,$md5)
+	public function dupecheck_write(array $data, string $md5)
 	{	
 		$md5_file=$this->md5_folder.'/'.$md5;
 		file_put_contents($md5_file,json_encode($data));
@@ -116,6 +117,6 @@ abstract class image_host
      * @return string Link to uploaded file
      * @throws UploadFailed
      */
-	abstract function upload($file);
+	abstract function upload(string $file);
 
 }

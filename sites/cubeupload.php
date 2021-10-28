@@ -47,7 +47,7 @@ class cubeupload extends image_host
      * @return string Uploaded file
      * @throws UploadFailed
      */
-	public function upload($file)
+	public function upload(string $file)
 	{
         if(empty($file) || !file_exists($file))
             throw new InvalidArgumentException(sprintf('File not found: "%s"', $file));

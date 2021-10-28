@@ -18,7 +18,7 @@ class imma_gr extends image_host
 		return $this->request('https://imma.gr/upload.php','POST',$postdata);
 	}
 
-	public function upload($file)
+	public function upload(string $file)
 	{
         if(empty($file) || !file_exists($file))
             throw new InvalidArgumentException(sprintf('File not found: "%s"', $file));
