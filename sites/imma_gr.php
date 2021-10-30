@@ -50,10 +50,16 @@ class imma_gr extends image_host
 			$data=$dupecheck_result;
 		else
 		{
-			$data = $this->send_upload($file);
-			$data = json_decode($data, true);
+			$data_raw = $this->send_upload($file);
+			$data = json_decode($data_raw, true);
 			if (!empty($data['error']))
 				throw new UploadFailed($data['error']);
+			if(!is_array($data))
+			{
+				var_dump($data);
+				var_dump($data_raw);
+				throw new UploadFailed();
+			}
 
 			$this->dupecheck_write($data, $md5);
 		}
@@ -62,8 +68,7 @@ class imma_gr extends image_host
 	}
 	function thumbnail($link)
 	{
-		$this->error='imma.gr does not provide thumbnails';
-		return false;
+		throw new InvalidArgumentException('imma.gr does not provide thumbnails');
 	}
 	function bbcode($link)
 	{
