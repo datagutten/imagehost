@@ -17,7 +17,8 @@
       "ext-json": "*",
       "ext-curl": "*",
       "symfony/filesystem": "^4.3|^5",
-      "rmccue/requests": "dev-multipart-form-data-v1.8.1"
+      "rmccue/requests": "1.8.1",
+      "cweagans/composer-patches": "~1.0"
     },
   "config": {
     "preferred-install": "source",
@@ -28,10 +29,11 @@
             "datagutten\\image_host\\": "sites"
         }
     },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/datagutten/Requests"
+    "extra": {
+        "patches": {
+            "rmccue/requests": {
+                "Support multipart/form-data": "requests-multipart-form-data.patch"
+            }
+        }
     }
-  ]
 }
