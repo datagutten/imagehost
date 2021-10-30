@@ -55,11 +55,7 @@ class imma_gr extends image_host
 			if (!empty($data['error']))
 				throw new UploadFailed($data['error']);
 			if(!is_array($data))
-			{
-				var_dump($data);
-				var_dump($data_raw);
-				throw new UploadFailed();
-			}
+				throw new UploadFailed('Invalid response from imma.gr');
 
 			$this->dupecheck_write($data, $md5);
 		}
