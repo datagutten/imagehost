@@ -3,7 +3,9 @@
 namespace datagutten\image_host;
 
 use curlfile;
+use datagutten\image_host\exceptions\UploadFailed;
 use InvalidArgumentException;
+use Requests_Exception;
 
 class imma_gr extends image_host
 {
@@ -12,13 +14,33 @@ class imma_gr extends image_host
 	{
 		parent::__construct();
 	}
-	private function send_upload($file)
+
+	/**
+	 * Send the upload to imma.gr
+	 * @param string $file Path to image file
+	 * @return string
+	 * @throws UploadFailed
+	 */
+	private function send_upload(string $file): string
 	{
 		$postdata=array('userfile'=>new curlfile($file));
-		return $this->request('https://imma.gr/upload.php','POST',$postdata);
+		try
+		{
+			return $this->request('https://imma.gr/upload.php', 'POST', $postdata);
+		}
+		catch (Requests_Exception $e)
+		{
+			throw new UploadFailed('Upload failed: '.$e->getMessage(), $e->getCode(), $e);
+		}
 	}
 
-	public function upload(string $file)
+	/**
+	 * Upload an image to imma.gr
+	 * @param string $file Path to image file
+	 * @return string
+	 * @throws UploadFailed
+	 */
+	public function upload(string $file): string
 	{
         if(empty($file) || !file_exists($file))
             throw new InvalidArgumentException(sprintf('File not found: "%s"', $file));
@@ -28,23 +50,15 @@ class imma_gr extends image_host
 			$data=$dupecheck_result;
 		else
 		{
-			$data=$this->send_upload($file);
-			if($data!==false)
-			{
-				$data=json_decode($data,true);
-				if(!empty($data['error']))
-				{
-					$this->error=$data['error'];
-					return false;
-				}
-				$this->dupecheck_write($data,$md5);				
-			}
+			$data = $this->send_upload($file);
+			$data = json_decode($data, true);
+			if (!empty($data['error']))
+				throw new UploadFailed($data['error']);
+
+			$this->dupecheck_write($data, $md5);
 		}
-		
-		if($data!==false)
-			return sprintf('https://imma.gr/%s',$data['msg']);
-		else
-			return false;
+
+		return sprintf('https://imma.gr/%s',$data['msg']);
 	}
 	function thumbnail($link)
 	{
