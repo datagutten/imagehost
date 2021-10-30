@@ -31,7 +31,7 @@ class cubeupload extends image_host
      * @throws Requests_Exception
      * @return string
      */
-	private function send_upload($file)
+	private function send_upload($file): string
 	{
 	    if(!$this->is_logged_in)
 	        $this->login();
@@ -39,15 +39,15 @@ class cubeupload extends image_host
 		$pathinfo=pathinfo($file);
 		$postdata=array('name'=>$pathinfo['basename'],'userHash'=>'false','userID'=>'false','fileinput[0]'=>new curlfile($file));
 		return $this->request('https://cubeupload.com/upload_json.php','POST',$postdata);
-		//print_r($postdata);
 	}
 
     /**
-     * @param string $file
+	 * Upload image to cubeupload.com
+     * @param string $file Path to image file
      * @return string Uploaded file
      * @throws UploadFailed
      */
-	public function upload(string $file)
+	public function upload(string $file): string
 	{
         if(empty($file) || !file_exists($file))
             throw new InvalidArgumentException(sprintf('File not found: "%s"', $file));
@@ -64,29 +64,21 @@ class cubeupload extends image_host
             {
                 throw new UploadFailed($e->getMessage(), 0, $e);
             }
-			if($data!==false)
-			{
-				$info=json_decode($data,true);
-				if(!is_array($info))
-				{
-                    throw new UploadFailed('cubeupload returned string: '.$data);
-				}
-				elseif(!isset($info['status']) || $info['status']!=='success')
-				{
-					throw new UploadFailed($info['error_text']);
-				}
-				$this->dupecheck_write($info,$md5);		
-			}
+
+			$info=json_decode($data,true);
+
+			if(!is_array($info))
+				throw new UploadFailed('cubeupload returned string: '.$data);
+			elseif(!isset($info['status']) || $info['status']!=='success')
+				throw new UploadFailed($info['error_text']);
+
+			$this->dupecheck_write($info,$md5);
 		}
 
-		if(!empty($info) && $info!==false && is_array($info))
+		if(!empty($info))
 			return sprintf('https://u.cubeupload.com/%s/%s',$info['user_name'],$info['file_name']);
 		else
-		{
-			$this->error='Unknown error, check cache file '.$md5;
-			return false;
-		}
-			
+			throw new UploadFailed('Unknown error, check cache file '.$md5);
 	}
 	function thumbnail($link)
 	{
