@@ -32,7 +32,7 @@
     "extra": {
         "patches": {
             "rmccue/requests": {
-                "Support multipart/form-data": "requests-multipart-form-data.patch"
+                "Support multipart/form-data": "https://github.com/datagutten/Requests/commit/3c88c2fef11abd875dc7b4f376312901d63c79d1.patch"
             }
         }
     }
