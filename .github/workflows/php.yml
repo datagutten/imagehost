@@ -48,10 +48,12 @@ jobs:
 
       - name: Update dependencies
         if: ${{ matrix.php != 'latest' }}
+        shell: bash
         run: composer update --prefer-dist --no-progress
 
       - name: Install dependencies
         if: ${{ matrix.php == 'latest' }}
+        shell: bash
         run: composer install --prefer-dist --no-progress
 
       - name: Run tests
