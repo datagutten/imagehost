@@ -5,7 +5,7 @@ namespace datagutten\image_host;
 use curlfile;
 use datagutten\image_host\exceptions\UploadFailed;
 use InvalidArgumentException;
-use Requests_Exception;
+use WpOrg\Requests;
 
 class imma_gr extends image_host
 {
@@ -28,7 +28,7 @@ class imma_gr extends image_host
 		{
 			return $this->request('https://imma.gr/upload.php', 'POST', $postdata);
 		}
-		catch (Requests_Exception $e)
+		catch (Requests\Exception $e)
 		{
 			throw new UploadFailed('Upload failed: '.$e->getMessage(), $e->getCode(), $e);
 		}

@@ -5,8 +5,7 @@ namespace datagutten\image_host;
 use CURLFile;
 use datagutten\image_host\exceptions\UploadFailed;
 use InvalidArgumentException;
-use Requests_Exception;
-use Requests_Response;
+use WpOrg\Requests;
 
 class imgur extends image_host
 {
@@ -33,7 +32,7 @@ class imgur extends image_host
                 $this->dupecheck_write($data, $md5);
                 return $data['link'];
             }
-           catch (Requests_Exception $e)
+           catch (Requests\Exception $e)
            {
                 $response = $e->getData();
                 $data = json_decode($response->body, true);
@@ -55,8 +54,8 @@ class imgur extends image_host
     /**
      * Delete an image
      * @param $delete_hash
-     * @throws Requests_Exception
-     * @return Requests_Response
+     * @throws Requests\Exception
+     * @return Requests\Response
     */
 	function delete($delete_hash)
     {

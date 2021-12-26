@@ -5,7 +5,7 @@ namespace datagutten\image_host;
 use curlfile;
 use datagutten\image_host\exceptions\UploadFailed;
 use InvalidArgumentException;
-use Requests_Exception;
+use WpOrg\Requests;
 
 class cubeupload extends image_host
 {
@@ -14,7 +14,7 @@ class cubeupload extends image_host
 
     /**
      * Log in to the site
-     * @throws Requests_Exception
+     * @throws Requests\Exception
      * @return string
      */
 	function login()
@@ -28,7 +28,7 @@ class cubeupload extends image_host
 
     /**
      * @param $file
-     * @throws Requests_Exception
+     * @throws Requests\Exception
      * @return string
      */
 	private function send_upload($file): string
@@ -60,7 +60,7 @@ class cubeupload extends image_host
 		    try {
                 $data = $this->send_upload($file);
             }
-            catch (Requests_Exception $e)
+            catch (Requests\Exception $e)
             {
                 throw new UploadFailed($e->getMessage(), 0, $e);
             }
