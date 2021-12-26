@@ -3,11 +3,9 @@
 namespace datagutten\image_host;
 
 use datagutten\image_host\exceptions\UploadFailed;
-use Requests;
-use Requests_Exception;
-use Requests_Exception_HTTP;
-use Requests_Session;
 use RuntimeException;
+use WpOrg\Requests;
+use WpOrg\Requests\Transport\Curl;
 
 abstract class image_host
 {
@@ -20,7 +18,7 @@ abstract class image_host
 	public $site;
 
     /**
-     * @var Requests_Session
+     * @var Requests\Session
      */
 	public $session;
 
@@ -28,6 +26,10 @@ abstract class image_host
      * @var array Configuration parameters
      */
     protected $config = [];
+    /**
+     * @var array Post data to be used in HTTP request
+     */
+    private $post_fields;
 
     function __construct(array $config = [])
     {
@@ -43,7 +45,12 @@ abstract class image_host
 		if(!file_exists($this->md5_folder))
 			mkdir($this->md5_folder, 0777, true);
         $options = [];
-		$this->session = new Requests_Session(null, [], [], $options);
+		$this->session = new Requests\Session(null, [], [], $options);
+    }
+
+    public function multipart_hook($ch)
+    {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $this->post_fields);
     }
 
     /**
@@ -52,20 +59,27 @@ abstract class image_host
      * @param string $method Request HTTP method
      * @param array|string|null $post_fields
      * @return string
-     * @throws Requests_Exception
-     * @throws Requests_Exception_HTTP
+     * @throws Requests\Exception
      */
 	public function request(string $url, string $method='GET', $post_fields=null): string
     {
         if(!empty($post_fields) || $method=='POST')
 		{
-		    if(is_array($post_fields))
-		        $response = $this->session->post($url, array('Content-Type'=>'multipart/form-data'), $post_fields, ['transport'=>'Requests_Transport_cURL']);
+            if (is_array($post_fields))
+            {
+                $hooks = new Requests\Hooks();
+                $hooks->register('curl.before_send', [$this, 'multipart_hook']);
+                $this->post_fields = $post_fields;
+                $response = $this->session->post($url, array('Content-Type' => 'multipart/form-data'), $post_fields, [
+                    'transport' => Curl::class,
+                    'hooks' => $hooks
+                ]);
+            }
             else
                 $response = $this->session->post($url, [], $post_fields);
 		}
 		else
-            $response = Requests::get($url);
+            $response = Requests\Requests::get($url);
 
 		$response->throw_for_status();
 

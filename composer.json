@@ -17,8 +17,7 @@
       "ext-json": "*",
       "ext-curl": "*",
       "symfony/filesystem": "^4.3|^5",
-      "rmccue/requests": "1.8.1",
-      "cweagans/composer-patches": "~1.0"
+      "rmccue/requests": "^2.0"
     },
   "config": {
     "preferred-install": "source",
@@ -27,13 +26,6 @@
   "autoload": {
         "psr-4": {
             "datagutten\\image_host\\": "sites"
-        }
-    },
-    "extra": {
-        "patches": {
-            "rmccue/requests": {
-                "Support multipart/form-data": "https://github.com/datagutten/Requests/commit/3c88c2fef11abd875dc7b4f376312901d63c79d1.patch"
-            }
         }
     }
 }
