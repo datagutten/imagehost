@@ -3,6 +3,8 @@
 namespace datagutten\image_host;
 
 use datagutten\image_host\exceptions\UploadFailed;
+use datagutten\tools\files\files;
+use InvalidArgumentException;
 use RuntimeException;
 use WpOrg\Requests;
 use WpOrg\Requests\Transport\Curl;
@@ -30,6 +32,7 @@ abstract class image_host
      * @var array Post data to be used in HTTP request
      */
     private $post_fields;
+    public static string $response_format;
 
     function __construct(array $config = [])
     {
@@ -46,6 +49,24 @@ abstract class image_host
 			mkdir($this->md5_folder, 0777, true);
         $options = [];
 		$this->session = new Requests\Session(null, [], [], $options);
+    }
+
+    public function md5_file($md5): string
+    {
+        $file = files::path_join($this->md5_folder, $md5);
+        if (file_exists($file) || !isset(static::$response_format))
+            return $file;
+        else
+            return files::path_join($this->md5_folder, $md5 . '.' . static::$response_format);
+    }
+
+    public function load_dedup($md5): array
+    {
+        $file = $this->md5_file($md5);
+        if (static::$response_format == 'json')
+            return json_decode(file_get_contents($file));
+        else
+            throw new RuntimeException(sprintf('Loading of %s not implemented', static::$response_format));
     }
 
     public function multipart_hook($ch)
@@ -93,7 +114,7 @@ abstract class image_host
      */
 	public function dupecheck(string $md5)
 	{
-		$md5_file=$this->md5_folder.'/'.$md5;
+		$md5_file=$this->md5_file($md5);
 		if(file_exists($md5_file) && is_file($md5_file)) //Sjekk om filen allerede er lastet opp
 		{
 			$data=file_get_contents($md5_file);
@@ -120,17 +141,37 @@ abstract class image_host
      * @param string $md5 MD5 hash of the image
      */
 	public function dupecheck_write(array $data, string $md5)
-	{	
+	{
 		$md5_file=$this->md5_folder.'/'.$md5;
 		file_put_contents($md5_file,json_encode($data));
 	}
 
     /**
-     * Upload image
-     * @param string $file
+     * Internal method to send the image to the host
+     * @param $file
+     * @return mixed
+     */
+    abstract protected function send_upload($file): array;
+
+    /**
+     * Upload image with deduplication check
+     * @param string $file File to upload
      * @return string Link to uploaded file
      * @throws UploadFailed
      */
-	abstract function upload(string $file);
-
+    public function upload(string $file): string
+    {
+        if(empty($file) || !file_exists($file))
+            throw new InvalidArgumentException(sprintf('File not found or empty: "%s"', $file));
+        $md5=md5_file($file);
+        $dupecheck_result=$this->dupecheck($md5);
+        if($dupecheck_result!==false)
+            return static::image_url($dupecheck_result);
+        else
+        {
+            $data = $this->send_upload($file);
+            $this->dupecheck_write($data, $md5);
+            return static::image_url($data);
+        }
+    }
 }
