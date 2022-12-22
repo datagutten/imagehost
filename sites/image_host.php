@@ -79,32 +79,44 @@ abstract class image_host
      * @param string $url
      * @param string $method Request HTTP method
      * @param array|string|null $post_fields
-     * @return string
+     * @param bool $return_body Return the response body instead of the response object
+     * @return string|Requests\Response
      * @throws Requests\Exception
+     * @throws Requests\Exception\Http
+     * @deprecated
      */
-	public function request(string $url, string $method='GET', $post_fields=null): string
+    public function request(string $url, string $method = 'GET', $post_fields = null, bool $return_body = True)
     {
-        if(!empty($post_fields) || $method=='POST')
-		{
-            if (is_array($post_fields))
-            {
-                $hooks = new Requests\Hooks();
-                $hooks->register('curl.before_send', [$this, 'multipart_hook']);
-                $this->post_fields = $post_fields;
-                $response = $this->session->post($url, array('Content-Type' => 'multipart/form-data'), $post_fields, [
-                    'transport' => Curl::class,
-                    'hooks' => $hooks
-                ]);
-            }
-            else
-                $response = $this->session->post($url, [], $post_fields);
-		}
-		else
+        if (!empty($post_fields) || $method == 'POST')
+            $response = $this->post_multipart($url, $post_fields);
+        else
             $response = Requests\Requests::get($url);
+        if ($return_body)
+        {
+            $response->throw_for_status();
+            return $response->body;
+        }
+        else
+            return $response;
+    }
 
-		$response->throw_for_status();
-
-		return $response->body;
+    /**
+     * Send an HTTP POST request with multipart/form-data
+     * @param string $url
+     * @param array|string|null $post_fields
+     * @return string|Requests\Response
+     * @throws Requests\Exception
+     * @noinspection PhpDocRedundantThrowsInspection
+     */
+    public function post_multipart(string $url, $post_fields): Requests\Response
+    {
+        $hooks = new Requests\Hooks();
+        $hooks->register('curl.before_send', [$this, 'multipart_hook']);
+        $this->post_fields = $post_fields;
+        return $this->session->post($url, array('Content-Type' => 'multipart/form-data'), $post_fields, [
+            'transport' => Curl::class,
+            'hooks' => $hooks
+        ]);
     }
 
     /**
