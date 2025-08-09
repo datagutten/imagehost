@@ -44,7 +44,8 @@ abstract class image_host
             $this->config = $config[$this->site];
         }
 
-		$this->md5_folder=sprintf('%s/%s/uploads_md5',__DIR__,$this->site);
+        $this->md5_folder = files::path_join($config['dedupe_path'] ?? __DIR__, $this->site, 'uploads_md5');
+
 		if(!file_exists($this->md5_folder))
 			mkdir($this->md5_folder, 0777, true);
         $options = [];
