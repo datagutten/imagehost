@@ -73,7 +73,7 @@ abstract class image_host
         if (!file_exists($file))
             return [];
         if (static::$response_format == 'json')
-            return json_decode(file_get_contents($file));
+            return json_decode(file_get_contents($file), true);
         else
             throw new RuntimeException(sprintf('Loading of %s not implemented', static::$response_format));
     }
