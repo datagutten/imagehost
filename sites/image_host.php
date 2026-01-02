@@ -167,6 +167,19 @@ abstract class image_host
 	}
 
     /**
+     * Check if a user is logged in to the site
+     * @return string|bool Return username if a user is logged in, otherwise return false
+     */
+    abstract public function is_logged_in(): string|bool;
+
+    /**
+     * Login to the site with credentials from config
+     * @return void
+     * @throws exceptions\LoginFailed
+     */
+    abstract public function login(): void;
+
+    /**
      * Internal method to send the image to the host
      * @param string $file Path to the file to upload
      * @return array
@@ -184,7 +197,7 @@ abstract class image_host
      * Upload image with deduplication check
      * @param string $file File to upload
      * @return string Link to uploaded file
-     * @throws UploadFailed
+     * @throws exceptions\UploadFailed|exceptions\LoginFailed
      */
     public function upload(string $file): string
     {
@@ -196,6 +209,8 @@ abstract class image_host
             return static::image_url($dupecheck_result);
         else
         {
+            if (!$this->is_logged_in())
+                $this->login();
             $data = $this->send_upload($file);
             $this->dupecheck_write($data, $md5);
             return static::image_url($data);

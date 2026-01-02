@@ -9,7 +9,8 @@ use WpOrg\Requests\Response;
 
 class cubeupload extends image_host
 {
-	public static $config_required = true;
+	public static bool $config_required = true;
+    public static string $response_format = 'json';
 
     /**
      * Log in to the site
@@ -36,17 +37,31 @@ class cubeupload extends image_host
             return false;
     }
 
-	protected function send_upload($file): array
-	{
-	    if(!$this->is_logged_in())
-	        $this->login();
-		echo "Sending upload\n";
-		$pathinfo=pathinfo($file);
-		$postdata=array('name'=>$pathinfo['basename'],'userHash'=>'false','userID'=>'false','fileinput[0]'=>new curlfile($file));
-        $response = $this->post_multipart('https://cubeupload.com/upload_json.php', $postdata);
-        $response->throw_for_status();
-        return $response->decode_body();
-	}
+    public static function image_url(array $data): string
+    {
+        return sprintf('https://u.cubeupload.com/%s/%s', $data['user_name'], $data['file_name']);
+    }
+
+    protected function send_upload($file): array
+    {
+        echo "Sending upload\n";
+        $pathinfo = pathinfo($file);
+        $postdata = array('name' => $pathinfo['basename'], 'userHash' => 'false', 'userID' => 'false', 'fileinput[0]' => new curlfile($file));
+        try
+        {
+            $response = $this->post_multipart('https://cubeupload.com/upload_json.php', $postdata);
+            $info = $response->decode_body();
+            if (!isset($info['status']) || $info['status'] !== 'success')
+                throw new exceptions\UploadFailed($info['error_text']);
+            elseif (!$response->success)
+                throw new exceptions\UploadFailed('Unknown error');
+            return $info;
+        }
+        catch (Requests\Exception $e)
+        {
+            throw new exceptions\UploadFailed($e->getMessage(), $e->getCode(), $e);
+        }
+    }
 
     /**
 	 * Upload image to cubeupload.com
@@ -58,9 +73,9 @@ class cubeupload extends image_host
 	{
         if(empty($file) || !file_exists($file))
             throw new InvalidArgumentException(sprintf('File not found: "%s"', $file));
-		$md5=md5_file($file);
-		$dupecheck_result=$this->dupecheck($md5);
-		if($dupecheck_result!==false)
+        $md5 = md5_file($file);
+        $dupecheck_result = $this->load_dedup($md5);
+		if(!empty($dupecheck_result))
 			$info=$dupecheck_result;
 		else
 		{
@@ -77,11 +92,6 @@ class cubeupload extends image_host
 
 			$this->dupecheck_write($info,$md5);
 		}
-
-		if(!empty($info))
-			return sprintf('https://u.cubeupload.com/%s/%s',$info['user_name'],$info['file_name']);
-		else
-			throw new exceptions\UploadFailed('Unknown error, check cache file '.$md5);
 	}
 	function thumbnail($link)
 	{
