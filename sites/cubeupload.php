@@ -38,7 +38,9 @@ class cubeupload extends image_host
 		echo "Sending upload\n";
 		$pathinfo=pathinfo($file);
 		$postdata=array('name'=>$pathinfo['basename'],'userHash'=>'false','userID'=>'false','fileinput[0]'=>new curlfile($file));
-		return $this->request('https://cubeupload.com/upload_json.php','POST',$postdata);
+        $response = $this->post_multipart('https://cubeupload.com/upload_json.php', $postdata);
+        $response->throw_for_status();
+        return $response->decode_body();
 	}
 
     /**
