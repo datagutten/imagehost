@@ -25,6 +25,7 @@
   },
   "autoload": {
         "psr-4": {
+            "datagutten\\image_host\\": "src",
             "datagutten\\image_host\\sites\\": "sites"
         }
     }
