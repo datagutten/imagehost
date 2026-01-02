@@ -1,6 +1,6 @@
 <?Php
 
-namespace datagutten\image_host;
+namespace datagutten\image_host\sites;
 
 use CURLFile;
 use datagutten\image_host\exceptions\UploadFailed;

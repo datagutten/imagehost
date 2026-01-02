@@ -1,7 +1,7 @@
 <?php
 
 
-namespace datagutten\image_host\exceptions;
+namespace datagutten\image_host\sites\exceptions;
 
 
 use Exception;

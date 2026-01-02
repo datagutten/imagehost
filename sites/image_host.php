@@ -1,6 +1,6 @@
 <?Php
 
-namespace datagutten\image_host;
+namespace datagutten\image_host\sites;
 
 use datagutten\image_host\exceptions\UploadFailed;
 use datagutten\tools\files\files;
@@ -11,9 +11,10 @@ use WpOrg\Requests\Transport\Curl;
 
 abstract class image_host
 {
-    public static $config_required = false;
-	public $md5_folder;
-	public $error;
+    public static bool $config_required = false;
+	public string $md5_folder;
+    public static string $base_url;
+
     /**
      * @var string Site name
      */
@@ -32,7 +33,7 @@ abstract class image_host
      * @var array Post data to be used in HTTP request
      */
     private $post_fields;
-    public static string $response_format;
+    public static string $response_format = 'json';
 
     function __construct(array $config = [])
     {
@@ -49,21 +50,24 @@ abstract class image_host
 		if(!file_exists($this->md5_folder))
 			mkdir($this->md5_folder, 0777, true);
         $options = [];
-		$this->session = new Requests\Session(null, [], [], $options);
+		$this->session = new Requests\Session(static::$base_url ?? null, [], [], $options);
     }
 
-    public function md5_file($md5): string
+    public function md5_file($md5, $extension=null): string
     {
         $file = files::path_join($this->md5_folder, $md5);
-        if (file_exists($file) || !isset(static::$response_format))
+        $extension = $extension ?? static::$response_format ?? null;
+        if (file_exists($file) || empty($extension))
             return $file;
         else
-            return files::path_join($this->md5_folder, $md5 . '.' . static::$response_format);
+            return files::path_join($this->md5_folder, $md5 . '.' . $extension);
     }
 
     public function load_dedup($md5): array
     {
-        $file = $this->md5_file($md5);
+        $file = $this->md5_file($md5, 'json');
+        if (!file_exists($file))
+            return [];
         if (static::$response_format == 'json')
             return json_decode(file_get_contents($file));
         else
@@ -124,11 +128,14 @@ abstract class image_host
      * Check if the file already is uploaded
      * @param string $md5 MD5 hash
      * @return bool|array Return false if not found or array with saved information
+     * @deprecated
      */
-	public function dupecheck(string $md5)
+	public function dupecheck(string $md5): array
 	{
 		$md5_file=$this->md5_file($md5);
-		if(file_exists($md5_file) && is_file($md5_file)) //Sjekk om filen allerede er lastet opp
+        return $this->load_dedup($md5);
+
+/*		if(file_exists($md5_file) && is_file($md5_file)) //Sjekk om filen allerede er lastet opp
 		{
 			$data=file_get_contents($md5_file);
 			if(empty($data)) //Empty file
@@ -145,7 +152,7 @@ abstract class image_host
 			return $info;
 		}
 		else
-			return false;
+			return false;*/
 	}
 
     /**
@@ -155,16 +162,23 @@ abstract class image_host
      */
 	public function dupecheck_write(array $data, string $md5)
 	{
-		$md5_file=$this->md5_folder.'/'.$md5;
+        $md5_file = $this->md5_file($md5);
 		file_put_contents($md5_file,json_encode($data));
 	}
 
     /**
      * Internal method to send the image to the host
-     * @param $file
-     * @return mixed
+     * @param string $file Path to the file to upload
+     * @return array
      */
-    abstract protected function send_upload($file): array;
+    abstract protected function send_upload(string $file): array;
+
+    /**
+     * Get URL to full size image
+     * @param array $data Data from dedupe JSON file
+     * @return string
+     */
+    abstract public static function image_url(array $data): string;
 
     /**
      * Upload image with deduplication check
@@ -177,8 +191,8 @@ abstract class image_host
         if(empty($file) || !file_exists($file))
             throw new InvalidArgumentException(sprintf('File not found or empty: "%s"', $file));
         $md5=md5_file($file);
-        $dupecheck_result=$this->dupecheck($md5);
-        if($dupecheck_result!==false)
+        $dupecheck_result = $this->load_dedup($md5);
+        if (!empty($dupecheck_result))
             return static::image_url($dupecheck_result);
         else
         {
@@ -186,5 +200,10 @@ abstract class image_host
             $this->dupecheck_write($data, $md5);
             return static::image_url($data);
         }
+    }
+
+    function bbcode($link)
+    {
+        return sprintf('[url=%s][img]%s[/img][/url]',$link,$this->thumbnail($link));
     }
 }
