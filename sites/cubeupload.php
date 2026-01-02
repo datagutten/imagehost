@@ -4,31 +4,43 @@ namespace datagutten\image_host\sites;
 
 use curlfile;
 use datagutten\image_host\exceptions\UploadFailed;
+use datagutten\image_host\sites\exceptions\LoginFailed;
 use InvalidArgumentException;
 use WpOrg\Requests;
+use WpOrg\Requests\Response;
 
 class cubeupload extends image_host
 {
-	public $is_logged_in = false;
 	public static $config_required = true;
 
     /**
      * Log in to the site
-     * @throws Requests\Exception
-     * @return string
+     * @throws LoginFailed
      */
-	function login()
+    function login(): void
     {
         $data = sprintf('cube_username=%s&cube_password=%s&login=Login',
             $this->config['username'], $this->config['password']);
-        $this->is_logged_in = true;
-        //TODO: Verify login with 302
-        return $this->request('https://cubeupload.com/login', 'POST', $data);
+        $response = $this->session->post('https://cubeupload.com/login', data: $data);
+        if ($this->is_logged_in($response) === false)
+            throw new LoginFailed();
+    }
+
+    function is_logged_in(Response $response = null): string|bool
+    {
+        if ($response === null)
+            $response = $this->session->get('https://cubeupload.com');
+
+        $body = $response->body;
+        if (preg_match('#href="/account".+?title="(.+?)"#', $body, $matches_username))
+            return $matches_username[1];
+        else
+            return false;
     }
 
 	protected function send_upload($file): array
 	{
-	    if(!$this->is_logged_in)
+	    if(!$this->is_logged_in())
 	        $this->login();
 		echo "Sending upload\n";
 		$pathinfo=pathinfo($file);
