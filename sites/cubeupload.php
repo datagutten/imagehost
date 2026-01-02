@@ -3,7 +3,6 @@
 namespace datagutten\image_host\sites;
 
 use curlfile;
-use InvalidArgumentException;
 use WpOrg\Requests;
 use WpOrg\Requests\Response;
 
@@ -63,45 +62,17 @@ class cubeupload extends image_host
         }
     }
 
-    /**
-	 * Upload image to cubeupload.com
-     * @param string $file Path to image file
-     * @return string Uploaded file
-     * @throws exceptions\UploadFailed
-     */
-	public function upload(string $file): string
-	{
-        if(empty($file) || !file_exists($file))
-            throw new InvalidArgumentException(sprintf('File not found: "%s"', $file));
-        $md5 = md5_file($file);
-        $dupecheck_result = $this->load_dedup($md5);
-		if(!empty($dupecheck_result))
-			$info=$dupecheck_result;
-		else
-		{
-		    try {
-                $info = $this->send_upload($file);
-            }
-            catch (Requests\Exception $e)
-            {
-                throw new exceptions\UploadFailed($e->getMessage(), 0, $e);
-            }
-
-            if (!isset($info['status']) || $info['status'] !== 'success')
-                throw new exceptions\UploadFailed($info['error_text']);
-
-			$this->dupecheck_write($info,$md5);
-		}
-	}
-	function thumbnail($link)
+    function thumbnail($link): string
 	{
 		return preg_replace('#(http.+cubeupload.com/)(.+)/(.+)$#U','$1$2/t/$3',$link);
 	}
-	function page_link($link)
+
+    function page_link($link): string
 	{
 		return str_replace('https://u.cubeupload.com','https://cubeupload.com/im',$link);
 	}
-	function bbcode($link)
+
+    function bbcode($link): string
 	{
 		return sprintf('[url=%s][img]%s[/img][/url]',$this->page_link($link),$this->thumbnail($link));
 	}
