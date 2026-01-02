@@ -2,7 +2,6 @@
 
 namespace datagutten\image_host\sites;
 
-use datagutten\image_host\exceptions\UploadFailed;
 use datagutten\tools\files\files;
 use InvalidArgumentException;
 use RuntimeException;
@@ -12,18 +11,18 @@ use WpOrg\Requests\Transport\Curl;
 abstract class image_host
 {
     public static bool $config_required = false;
-	public string $md5_folder;
+    public string $md5_folder;
     public static string $base_url;
 
     /**
      * @var string Site name
      */
-	public $site;
+    public string $site;
 
     /**
      * @var Requests\Session
      */
-	public $session;
+    public Requests\Session $session;
 
     /**
      * @var array Configuration parameters
@@ -63,7 +62,12 @@ abstract class image_host
             return files::path_join($this->md5_folder, $md5 . '.' . $extension);
     }
 
-    public function load_dedup($md5): array
+    /**
+     * Check if a file with the given MD5 sum already is uploaded to the site
+     * @param string $md5 MD5 sum
+     * @return array Return an array with saved information or an empty array if no information is found
+     */
+    public function load_dedup(string $md5): array
     {
         $file = $this->md5_file($md5, 'json');
         if (!file_exists($file))
@@ -132,27 +136,7 @@ abstract class image_host
      */
 	public function dupecheck(string $md5): array
 	{
-		$md5_file=$this->md5_file($md5);
         return $this->load_dedup($md5);
-
-/*		if(file_exists($md5_file) && is_file($md5_file)) //Sjekk om filen allerede er lastet opp
-		{
-			$data=file_get_contents($md5_file);
-			if(empty($data)) //Empty file
-			{
-				unlink($md5_file);
-				return false;
-			}
-			$info=json_decode($data,true);
-			if(!is_array($info))
-			{
-				rename($md5_file,$md5_file.'_bad');
-				return false;
-			}
-			return $info;
-		}
-		else
-			return false;*/
 	}
 
     /**
@@ -182,6 +166,7 @@ abstract class image_host
     /**
      * Internal method to send the image to the host
      * @param string $file Path to the file to upload
+     * @throws exceptions\UploadFailed
      * @return array
      */
     abstract protected function send_upload(string $file): array;
