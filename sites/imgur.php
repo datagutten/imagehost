@@ -15,8 +15,8 @@ class imgur extends image_host
         parent::__construct($config);
         $this->session->headers = ['Authorization'=>'Client-Id '.$this->config['api_key']];
     }
-	
-	public function upload(string $file)
+
+    protected function send_upload(string $file): array
 	{
         if(empty($file) || !file_exists($file))
             throw new InvalidArgumentException(sprintf('File not found: "%s"', $file));

@@ -26,12 +26,7 @@ class cubeupload extends image_host
         return $this->request('https://cubeupload.com/login', 'POST', $data);
     }
 
-    /**
-     * @param $file
-     * @throws Requests\Exception
-     * @return string
-     */
-	private function send_upload($file): string
+	protected function send_upload($file): array
 	{
 	    if(!$this->is_logged_in)
 	        $this->login();
