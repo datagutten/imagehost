@@ -36,7 +36,7 @@ abstract class image_host
 
     function __construct(array $config = [])
     {
-		$this->site= substr(strrchr(static::class, "\\"), 1);
+        $this->site = substr(strrchr(static::class, "\\"), 1);
         if (static::$config_required)
         {
             if (empty($config[$this->site]))
@@ -46,13 +46,13 @@ abstract class image_host
 
         $this->md5_folder = files::path_join($config['dedupe_path'] ?? __DIR__, $this->site, 'uploads_md5');
 
-		if(!file_exists($this->md5_folder))
-			mkdir($this->md5_folder, 0777, true);
+        if (!file_exists($this->md5_folder))
+            mkdir($this->md5_folder, 0777, true);
         $options = [];
-		$this->session = new Requests\Session(static::$base_url ?? null, [], [], $options);
+        $this->session = new Requests\Session(static::$base_url ?? null, [], [], $options);
     }
 
-    public function md5_file($md5, $extension=null): string
+    public function md5_file($md5, $extension = null): string
     {
         $file = files::path_join($this->md5_folder, $md5);
         $extension = $extension ?? static::$response_format ?? null;
@@ -134,21 +134,21 @@ abstract class image_host
      * @return bool|array Return false if not found or array with saved information
      * @deprecated
      */
-	public function dupecheck(string $md5): array
-	{
+    public function dupecheck(string $md5): array
+    {
         return $this->load_dedup($md5);
-	}
+    }
 
     /**
      * Write duplicate check file with information about the uploaded image
      * @param array $data Array with data to be saved
      * @param string $md5 MD5 hash of the image
      */
-	public function dupecheck_write(array $data, string $md5)
-	{
+    public function dupecheck_write(array $data, string $md5)
+    {
         $md5_file = $this->md5_file($md5);
-		file_put_contents($md5_file,json_encode($data));
-	}
+        file_put_contents($md5_file, json_encode($data));
+    }
 
     /**
      * Check if a user is logged in to the site
@@ -166,8 +166,8 @@ abstract class image_host
     /**
      * Internal method to send the image to the host
      * @param string $file Path to the file to upload
-     * @throws exceptions\UploadFailed
      * @return array
+     * @throws exceptions\UploadFailed
      */
     abstract protected function send_upload(string $file): array;
 
@@ -186,9 +186,9 @@ abstract class image_host
      */
     public function upload(string $file): string
     {
-        if(empty($file) || !file_exists($file))
+        if (empty($file) || !file_exists($file))
             throw new InvalidArgumentException(sprintf('File not found or empty: "%s"', $file));
-        $md5=md5_file($file);
+        $md5 = md5_file($file);
         $dupecheck_result = $this->load_dedup($md5);
         if (!empty($dupecheck_result))
             return static::image_url($dupecheck_result);
@@ -204,6 +204,6 @@ abstract class image_host
 
     function bbcode($link)
     {
-        return sprintf('[url=%s][img]%s[/img][/url]',$link,$this->thumbnail($link));
+        return sprintf('[url=%s][img]%s[/img][/url]', $link, $this->thumbnail($link));
     }
 }
