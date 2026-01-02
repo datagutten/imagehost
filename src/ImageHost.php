@@ -4,6 +4,7 @@ namespace datagutten\image_host;
 
 use FilesystemIterator;
 use SplFileInfo;
+use datagutten\image_host\sites\exceptions;
 
 class ImageHost
 {
@@ -33,5 +34,19 @@ class ImageHost
         }
 
         return $sites;
+    }
+
+    /**
+     * @param string $string Site slug
+     * @return string Site class path
+     * @throws exceptions\SiteNotFoundException Site not found (invalid site slug)
+     */
+    public static function getSite(string $string): string
+    {
+        $class = 'datagutten\\image_host\\sites\\' . $string;
+        if (class_exists($class))
+            return $class;
+
+        throw new exceptions\SiteNotFoundException($string);
     }
 }
